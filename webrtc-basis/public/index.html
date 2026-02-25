@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Desktop - QR Code</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+            background: #f4f4f4;
+        }
+
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="box">
+        <h1>Scan om te verbinden</h1>
+        <p>Pak je smartphone en scan de code hieronder:</p>
+        <div id="qrcode"></div>
+        <p id="status" style="color: gray; margin-top:20px;">Wachten op connectie...</p>
+    </div>
+
+    <script>
+        const socket = io(); // Verbind de desktop met de server
+        const statusText = document.getElementById('status');
+
+        // Haal het IP adres op van de server en maak de QR code
+        fetch('/api/config')
+            .then(response => response.json())
+            .then(data => {
+                const mobileUrl = `http://${data.ip}:${data.port}/mobile.html`;
+
+                new QRCode(document.getElementById("qrcode"), {
+                    text: mobileUrl,
+                    width: 250,
+                    height: 250
+                });
+            });
+
+        socket.on('connect', () => {
+            statusText.innerText = "Desktop is verbonden met de server. Wachten op gsm...";
+        });
+    </script>
+</body>
+
+</html>
