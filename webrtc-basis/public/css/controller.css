@@ -1,0 +1,182 @@
+body {
+    margin: 0;
+    background-color: #111;
+    color: white;
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    touch-action: none;
+}
+
+#status-bar {
+    text-align: center;
+    padding: 15px;
+    background: #222;
+    font-weight: bold;
+    font-size: 14px;
+    color: #f1c40f;
+}
+
+#controller-start-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 95;
+    background: rgba(0, 0, 0, 0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.start-card {
+    background: linear-gradient(180deg, #fff9ef 0%, #f6e4c4 100%);
+    color: #2b2b2b;
+    max-width: 420px;
+    width: 100%;
+    border-radius: 14px;
+    padding: 18px;
+    box-sizing: border-box;
+    text-align: left;
+    border: 3px solid #6e5a42;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+}
+
+.start-card h2 {
+    margin: 0 0 10px 0;
+    font-size: 22px;
+}
+
+.start-card p {
+    margin: 7px 0;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+#btn-start-controller {
+    margin-top: 14px;
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 18px;
+    font-weight: 800;
+    background: #c0392b;
+    color: #fff;
+}
+
+.controls {
+    display: flex;
+    flex: 1;
+    padding: 20px;
+    gap: 20px;
+}
+
+#restart-wrap {
+    display: none;
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 90;
+    background: rgba(0, 0, 0, 0.35);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#btn-restart {
+    width: min(360px, 90vw);
+    border: none;
+    border-radius: 12px;
+    padding: 20px 16px;
+    font-size: 24px;
+    font-weight: 800;
+    background: #3498db;
+    color: white;
+}
+
+.btn {
+    flex: 1;
+    border-radius: 20px;
+    font-size: 30px;
+    font-weight: 900;
+    color: white;
+    border: none;
+    outline: none;
+    box-shadow: 0 10px 0 rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+
+.btn:active {
+    transform: translateY(10px);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0.5);
+}
+
+#btn-brake {
+    background-color: #e74c3c;
+}
+
+#btn-gas {
+    background-color: #2ecc71;
+}
+
+/* iOS sensor permissie overlay */
+#sensor-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #111;
+    z-index: 100;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    text-align: center;
+    padding: 30px;
+}
+
+#sensor-overlay p {
+    font-size: 18px;
+    color: white;
+}
+
+#sensor-btn {
+    padding: 16px 32px;
+    font-size: 20px;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+/* Visuele tilt indicator (gele stip schuift mee) */
+#tilt-indicator {
+    position: relative;
+    height: 10px;
+    background: #333;
+    margin: 0 20px 10px 20px;
+    border-radius: 5px;
+}
+
+#tilt-bar {
+    position: absolute;
+    width: 24px;
+    height: 10px;
+    background: #f1c40f;
+    border-radius: 5px;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}

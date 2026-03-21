@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drift Racer - Desktop</title>
+    <link rel="stylesheet" href="/css/screen.css">
+</head>
+
+<body>
+    <div id="screen-start-overlay">
+        <div class="start-card">
+            <h2>🏁 Welkom bij Drift Racer</h2>
+            <p>Doel: rijd zo ver mogelijk zonder tegen rotsen te botsen.</p>
+            <p>Vermijd olievlekken, want dan glijdt je auto tijdelijk.</p>
+            <div id="intro-qr"></div>
+            <a id="intro-url" href="" target="_blank">Controller link</a>
+            <p class="intro-hint">Scan de QR direct met je gsm (landscape mode).</p>
+        </div>
+    </div>
+
+    <!-- Racebaan achtergrond -->
+    <!-- Racebaan achtergrond met scrollende wegstreep -->
+    <div class="track">
+        <div id="road-stripe"></div>
+    </div>
+    <!-- Menu met QR code voor telefoon controller -->
+    <div id="menu">
+        <h2>Scan om te racen</h2>
+        <div id="qr" style="display:none;"></div>
+        <a id="url" href="" target="_blank" style="display:none;">Link</a>
+    </div>
+    <!-- Auto die beweegt op basis van controller input -->
+    <div id="car" class="car"></div>
+    <!-- Score teller -->
+    <div id="score-display">0m</div>
+    <div id="effect-display">SLIPPERY!</div>
+    <!-- Game Over overlay -->
+    <div id="game-over">
+        <h1>CRASH!</h1>
+        <p id="final-score"></p>
+        <p id="best-score"></p>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-peer/9.11.1/simplepeer.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <script src="/js/screen.js"></script>
+</body>
+
+</html>
