@@ -5,7 +5,7 @@ body {
     font-family: sans-serif;
 }
 
-#screen-start-overlay {
+.screen-start-overlay {
     position: fixed;
     inset: 0;
     z-index: 30;
@@ -17,7 +17,7 @@ body {
     box-sizing: border-box;
 }
 
-#screen-start-overlay .start-card {
+.screen-start-overlay .start-card {
     background: linear-gradient(180deg, #fff9ef 0%, #f6e4c4 100%);
     color: #2b2b2b;
     max-width: 460px;
@@ -30,18 +30,18 @@ body {
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
 }
 
-#screen-start-overlay .start-card h2 {
+.screen-start-overlay .start-card h2 {
     margin: 0 0 10px 0;
     font-size: 24px;
 }
 
-#screen-start-overlay .start-card p {
+.screen-start-overlay .start-card p {
     margin: 7px 0;
     font-size: 15px;
     line-height: 1.45;
 }
 
-#intro-qr {
+.intro-qr {
     margin-top: 12px;
     padding: 10px;
     background: #fff;
@@ -50,7 +50,7 @@ body {
     display: inline-block;
 }
 
-#intro-url {
+.intro-url {
     display: block;
     margin-top: 8px;
     font-size: 11px;
@@ -82,34 +82,6 @@ body {
     border-right: 10px solid #7d694f;
     box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
     box-sizing: border-box;
-}
-
-#menu {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    z-index: 10;
-    text-align: center;
-}
-
-#menu h2 {
-    margin: 0 0 10px 0;
-    font-size: 16px;
-    color: #333;
-}
-
-#url {
-    display: block;
-    font-size: 10px;
-    color: gray;
-    margin-top: 10px;
-    text-decoration: none;
-    word-break: break-all;
-    max-width: 150px;
 }
 
 .car {
@@ -208,7 +180,7 @@ body {
 }
 
 /* Scrollende wegmarkering: geeft "rijdend" gevoel */
-#road-stripe {
+.road-stripe {
     position: absolute;
     left: 50%;
     top: -105px;
@@ -224,7 +196,7 @@ body {
 }
 
 /* Score teller rechtsboven */
-#score-display {
+.score-display {
     position: absolute;
     top: 20px;
     right: 20px;
@@ -235,7 +207,7 @@ body {
     z-index: 10;
 }
 
-#effect-display {
+.effect-display {
     position: absolute;
     top: 24px;
     left: 50%;
@@ -249,7 +221,7 @@ body {
 }
 
 /* Game Over scherm */
-#game-over {
+.game-over {
     display: none;
     position: absolute;
     top: 0;
@@ -265,13 +237,13 @@ body {
     text-align: center;
 }
 
-#game-over h1 {
+.game-over h1 {
     font-size: 64px;
     margin-bottom: 10px;
     color: #e74c3c;
 }
 
-#game-over p {
+.game-over p {
     font-size: 22px;
     margin: 6px 0;
 }

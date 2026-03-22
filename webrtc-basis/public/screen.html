@@ -9,13 +9,13 @@
 </head>
 
 <body>
-    <div id="screen-start-overlay">
+    <div class="screen-start-overlay">
         <div class="start-card">
             <h2>🏁 Welkom bij Drift Racer</h2>
-            <p>Doel: rijd zo ver mogelijk zonder tegen rotsen te botsen.</p>
+            <p>Doel: rijd zo ver mogelijk zonder tegen de auto's te botsen.</p>
             <p>Vermijd olievlekken, want dan glijdt je auto tijdelijk.</p>
-            <div id="intro-qr"></div>
-            <a id="intro-url" href="" target="_blank">Controller link</a>
+            <div class="intro-qr"></div>
+            <a class="intro-url" href="" target="_blank">Controller link</a>
             <p class="intro-hint">Scan de QR direct met je gsm (landscape mode).</p>
         </div>
     </div>
@@ -23,24 +23,18 @@
     <!-- Racebaan achtergrond -->
     <!-- Racebaan achtergrond met scrollende wegstreep -->
     <div class="track">
-        <div id="road-stripe"></div>
-    </div>
-    <!-- Menu met QR code voor telefoon controller -->
-    <div id="menu">
-        <h2>Scan om te racen</h2>
-        <div id="qr" style="display:none;"></div>
-        <a id="url" href="" target="_blank" style="display:none;">Link</a>
+        <div class="road-stripe"></div>
     </div>
     <!-- Auto die beweegt op basis van controller input -->
-    <div id="car" class="car"></div>
+    <div class="car"></div>
     <!-- Score teller -->
-    <div id="score-display">0m</div>
-    <div id="effect-display">SLIPPERY!</div>
+    <div class="score-display">0m</div>
+    <div class="effect-display">SLIPPERY!</div>
     <!-- Game Over overlay -->
-    <div id="game-over">
+    <div class="game-over">
         <h1>CRASH!</h1>
-        <p id="final-score"></p>
-        <p id="best-score"></p>
+        <p class="final-score"></p>
+        <p class="best-score"></p>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>

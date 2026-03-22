@@ -308,4 +308,221 @@ Ik heb de AI meerdere keren bijgestuurd door exact te beschrijven hoe ik mijn te
 - Moeilijkheidsgraad variëren — Verschillende soorten obstakels (breed/smal), of een snelheidsboost power-up.
 - Visuele feedback op de controller — De telefoon laten trillen bij een botsing (`navigator.vibrate()`), of het scherm rood laten flashen.
 
+---
+
+## Development Diary (Afgelopen dagen) - One-to-One pairing, reconnect & polish
+
+### 1. One-to-one setup met QR-code
+
+**Wat ik heb gedaan:**
+- De screen maakt een unieke controller-link met `socket.id` en toont die als QR-code.
+- De gsm scant de QR en krijgt `controller.html?id=<socketId>`.
+- De server koppelt de twee sockets als pair (1 screen + 1 controller), zodat de connectie one-to-one blijft.
+
+**Waarom dit belangrijk is:**
+- Dit voldoet aan de opdracht-eis van een duidelijke one-to-one opzet.
+- Elke sessie heeft zijn eigen koppeling in plaats van broadcast naar iedereen.
+
+### 2. WebRTC DataChannel voor controls, Socket.io enkel voor signalling
+
+**Wat ik heb gedaan:**
+- Gas, rem, steer, start/restart en game-over lopen via `peer.send()` / `peer.on('data')`.
+- Socket.io wordt enkel gebruikt om `signal` berichten (offer/answer/candidates) te relayen en voor connectiestatus.
+
+**Resultaat:**
+- De controls zitten op de DataChannel-laag (peer-to-peer), zoals gevraagd.
+- De websocketlaag blijft beperkt tot signalling en lifecycle-events.
+
+### 3. Disconnect gedrag verbeterd (gsm weg = QR terug op pc)
+
+**Probleem:**
+- Als de gsm uitviel of disconnectte, bleef de screen soms in game-state hangen zonder nieuwe QR-flow.
+
+**Oplossing:**
+- Server stuurt nu bij disconnect een expliciet `peer-disconnected` event naar de overblijvende peer.
+- Screen reset naar wachtstaat: game stopt, overlays resetten, QR komt opnieuw in beeld.
+- Controller ruimt peer/interval op en toont opnieuw duidelijke verbindingsstatus.
+
+**Resultaat:**
+- Als de gsm wegvalt, kan je opnieuw verbinden zonder server restart of page refresh.
+
+### 4. Kleine code-opkuis voor leesbaarheid
+
+**Wat ik heb gedaan:**
+- Een aantal `if`-blokken samengevoegd naar `else if` waar conditions elkaar uitsluiten.
+- Kleine stijlverbeteringen toegepast (zonder functionele wijzigingen) om de code netter en duidelijker te maken.
+
+---
+
+## Run Instructions (simpel)
+
+1. Open terminal in de map `webrtc-basis`
+2. Installeer dependencies:
+
+```bash
+npm install
+```
+
+3. Start de lokale server:
+
+```bash
+npm start
+```
+
+4. Open op je pc:
+- `https://localhost:3000`
+
+5. Scan de QR-code met je gsm (zelfde netwerk) en accepteer indien nodig het certificaat/permissions.
+
+**Technische samenvatting:**
+- Frontend: HTML/CSS/JS lokaal gehost via Node + Express
+- Signalling: Socket.io
+- Controls: WebRTC DataChannel (simple-peer)
+
+---
+
+## Prompts & code (afgelopen dagen)
+
+### Prompts die ik gebruikt heb
+
+
+> *"hier staan 3 if statements kan dat niet met een else if?"*
+
+
+> *"zoek nog door heel mijn code files of je nog zo een dingen kan doen dat je niet teveel if statements hebt zo ziet het er een beetje netter uit"*
+
+
+
+> *"hoe doe ik dit Starten met npm install + npm start: Nee. In package.json ontbreekt een start-script."*
+
+
+### Code die ik heb gebruikt voor de recente aanpassingen
+
+#### 1) Server-side pairing + disconnect event (index.js)
+
+```js
+const pairedSockets = new Map();
+
+const pairSockets = (a, b) => {
+    if (!a || !b || a === b) return;
+
+    const oldA = pairedSockets.get(a);
+    if (oldA && oldA !== b) {
+        pairedSockets.delete(oldA);
+    }
+
+    const oldB = pairedSockets.get(b);
+    if (oldB && oldB !== a) {
+        pairedSockets.delete(oldB);
+    }
+
+    pairedSockets.set(a, b);
+    pairedSockets.set(b, a);
+};
+
+const unpairSocket = (id) => {
+    const peerId = pairedSockets.get(id);
+    pairedSockets.delete(id);
+    if (peerId) {
+        pairedSockets.delete(peerId);
+    }
+    return peerId;
+};
+
+socket.on('disconnect', () => {
+    const peerId = unpairSocket(socket.id);
+    if (peerId) {
+        io.to(peerId).emit('peer-disconnected', socket.id);
+    }
+});
+
+socket.on('signal', (peerId, signal) => {
+    pairSockets(socket.id, peerId);
+    io.to(peerId).emit('signal', peerId, signal, socket.id);
+});
+```
+
+#### 2) Screen reset naar QR bij disconnect (screen.js)
+
+```js
+const resetToWaitingState = () => {
+    if (isResettingConnection) return;
+    isResettingConnection = true;
+
+    gameRunning = false;
+    cancelAnimationFrame(animFrameId);
+    animFrameId = null;
+
+    obstacles.forEach(o => o.el.remove());
+    obstacles = [];
+
+    score = 0;
+    gameSpeed = 0;
+    controllerGas = false;
+    controllerBrake = false;
+    slipperyUntil = 0;
+    $scoreDisplay.textContent = '0m';
+    $effectDisplay.style.display = 'none';
+    $gameOver.style.display = 'none';
+    $car.classList.remove('gas');
+    $car.classList.remove('brake');
+
+    cleanupPeer();
+
+    if ($screenStartOverlay) {
+        $screenStartOverlay.style.display = 'flex';
+    }
+    if (socket && socket.connected) {
+        renderIntroQr(socket.id);
+    }
+
+    isResettingConnection = false;
+};
+
+socket.on('peer-disconnected', () => {
+    resetToWaitingState();
+});
+```
+
+#### 3) Controller cleanup bij connectieverlies (controller.js)
+
+```js
+const handleConnectionLost = () => {
+    cleanupPeerConnection();
+    setStatus('❌ Verbinding verbroken. Scan QR opnieuw.', '#e74c3c');
+};
+
+peer.on('close', () => {
+    handleConnectionLost();
+});
+
+peer.on('error', () => {
+    handleConnectionLost();
+});
+
+socket.on('disconnect', () => {
+    handleConnectionLost();
+});
+
+socket.on('peer-disconnected', () => {
+    handleConnectionLost();
+});
+```
+
+
+#### 4) Leesbaarheid: `if`-blokken vereenvoudigen
+
+```js
+if (msg.type === 'gameOver') {
+    restartWrap.style.display = 'flex';
+} else if (msg.type === 'running') {
+    restartWrap.style.display = 'none';
+}
+```
+
+```js
+$car.classList.toggle('gas', carState.gas);
+$car.classList.toggle('brake', carState.brake);
+```
+
 

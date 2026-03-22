@@ -9,32 +9,32 @@
 </head>
 
 <body>
-    <div id="sensor-overlay">
+    <div class="sensor-overlay">
         <p>Safari vereist toestemming voor de gyroscoop (stuur)</p>
-        <button id="sensor-btn">🎮 Activeer Stuur</button>
+        <button class="sensor-btn">🎮 Activeer Stuur</button>
     </div>
 
-    <div id="controller-start-overlay">
+    <div class="controller-start-overlay">
         <div class="start-card">
             <h2>Controller Uitleg</h2>
             <p>Houd je gsm in <strong>landscape mode</strong> (liggend).</p>
             <p>Kantel je gsm links/rechts om te sturen.</p>
             <p>Houd GAS ingedrukt om te versnellen.</p>
             <p>Houd REM ingedrukt om te vertragen.</p>
-            <button id="btn-start-controller">Start nu</button>
+            <button class="btn-start-controller">Start nu</button>
         </div>
     </div>
 
     <!-- Status bar toont verbindingsstatus -->
-    <div id="status-bar">Koppelen met pc...</div>
+    <div class="status-bar">Koppelen met pc...</div>
 
     <!-- Knoppen voor gas en rem (aangestuurd door aanraken) -->
     <div class="controls">
-        <div id="btn-brake" class="btn">REM</div>
-        <div id="btn-gas" class="btn">GAS</div>
+        <div class="btn btn-brake" aria-label="Rem"></div>
+        <div class="btn btn-gas" aria-label="Gas"></div>
     </div>
-    <div id="restart-wrap">
-        <button id="btn-restart">RESTART</button>
+    <div class="restart-wrap">
+        <button class="btn-restart">RESTART</button>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>

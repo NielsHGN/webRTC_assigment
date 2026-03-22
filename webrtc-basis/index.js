@@ -23,6 +23,33 @@ app.get(['/', '/index.html'], (req, res) => {
 app.use(express.static('public'));
 
 const clients = {}; // Hou track van verbonden clients
+const pairedSockets = new Map();
+
+const pairSockets = (a, b) => {
+    if (!a || !b || a === b) return;
+
+    const oldA = pairedSockets.get(a);
+    if (oldA && oldA !== b) {
+        pairedSockets.delete(oldA);
+    }
+
+    const oldB = pairedSockets.get(b);
+    if (oldB && oldB !== a) {
+        pairedSockets.delete(oldB);
+    }
+
+    pairedSockets.set(a, b);
+    pairedSockets.set(b, a);
+};
+
+const unpairSocket = (id) => {
+    const peerId = pairedSockets.get(id);
+    pairedSockets.delete(id);
+    if (peerId) {
+        pairedSockets.delete(peerId);
+    }
+    return peerId;
+};
 
 // Socket.io verbinding handler
 io.on('connection', socket => {
@@ -32,11 +59,16 @@ io.on('connection', socket => {
     // Wanneer client verbreekt
     socket.on('disconnect', () => {
         console.log('Socket disconnected', socket.id);
+        const peerId = unpairSocket(socket.id);
+        if (peerId) {
+            io.to(peerId).emit('peer-disconnected', socket.id);
+        }
         delete clients[socket.id];
     });
 
     // Relay WebRTC signalen tussen peers (smartphone en desktop)
     socket.on('signal', (peerId, signal) => {
+        pairSockets(socket.id, peerId);
         console.log(`Received signal from ${socket.id} to ${peerId}`);
         io.to(peerId).emit('signal', peerId, signal, socket.id);
     });

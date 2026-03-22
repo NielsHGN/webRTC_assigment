@@ -1,14 +1,17 @@
-const $url = document.getElementById('url');
-const $introUrl = document.getElementById('intro-url');
-const $introQr = document.getElementById('intro-qr');
-const $car = document.getElementById('car');
-const $scoreDisplay = document.getElementById('score-display');
-const $gameOver = document.getElementById('game-over');
-const $roadStripe = document.getElementById('road-stripe');
+const $introUrl = document.querySelector('.intro-url');
+const $introQr = document.querySelector('.intro-qr');
+const $car = document.querySelector('.car');
+const $scoreDisplay = document.querySelector('.score-display');
+const $gameOver = document.querySelector('.game-over');
+const $finalScore = document.querySelector('.final-score');
+const $bestScore = document.querySelector('.best-score');
+const $roadStripe = document.querySelector('.road-stripe');
 const $track = document.querySelector('.track');
-const $effectDisplay = document.getElementById('effect-display');
+const $effectDisplay = document.querySelector('.effect-display');
+const $screenStartOverlay = document.querySelector('.screen-start-overlay');
 
 let socket, peer;
+let isResettingConnection = false;
 
 // --- Game State ---
 let carX = window.innerWidth / 2;
@@ -153,8 +156,7 @@ const gameLoop = (timestamp) => {
             if (obs.type === 'rock') {
                 gameOver();
                 return;
-            }
-            if (obs.type === 'oil-spill') {
+            } else if (obs.type === 'oil-spill') {
                 slipperyUntil = timestamp + 2000;
                 obs.el.remove();
                 obstacles.splice(i, 1);
@@ -212,47 +214,103 @@ const gameOver = () => {
         bestScore = finalScore;
         localStorage.setItem('driftBest', bestScore);
     }
-    document.getElementById('final-score').textContent = `Afstand: ${finalScore}m`;
-    document.getElementById('best-score').textContent = `Personal Best: ${bestScore}m`;
+    $finalScore.textContent = `Afstand: ${finalScore}m`;
+    $bestScore.textContent = `Personal Best: ${bestScore}m`;
     $gameOver.style.display = 'flex';
     if (peer && peer.connected) {
         peer.send(JSON.stringify({ type: 'gameOver' }));
     }
 };
 
+const renderIntroQr = (socketId) => {
+    if (!socketId) return;
+    const url = `${new URL(`/controller.html?id=${socketId}`, window.location)}`;
+    $introUrl.textContent = url;
+    $introUrl.setAttribute('href', url);
+    const qr = qrcode(4, 'L');
+    qr.addData(url);
+    qr.make();
+    $introQr.innerHTML = qr.createImgTag(4);
+};
+
+const cleanupPeer = () => {
+    if (!peer) return;
+    const oldPeer = peer;
+    peer = null;
+    oldPeer.removeAllListeners();
+    if (!oldPeer.destroyed) {
+        oldPeer.destroy();
+    }
+};
+
+const resetToWaitingState = () => {
+    if (isResettingConnection) return;
+    isResettingConnection = true;
+
+    gameRunning = false;
+    cancelAnimationFrame(animFrameId);
+    animFrameId = null;
+
+    obstacles.forEach(o => o.el.remove());
+    obstacles = [];
+
+    score = 0;
+    gameSpeed = 0;
+    controllerGas = false;
+    controllerBrake = false;
+    slipperyUntil = 0;
+    $scoreDisplay.textContent = '0m';
+    $effectDisplay.style.display = 'none';
+    $gameOver.style.display = 'none';
+    $car.classList.remove('gas');
+    $car.classList.remove('brake');
+
+    cleanupPeer();
+
+    if ($screenStartOverlay) {
+        $screenStartOverlay.style.display = 'flex';
+    }
+    if (socket && socket.connected) {
+        renderIntroQr(socket.id);
+    }
+
+    isResettingConnection = false;
+};
+
 // --- WebRTC Setup ---
 const init = () => {
     socket = io.connect('/');
     socket.on('connect', () => {
-        const url = `${new URL(`/controller.html?id=${socket.id}`, window.location)}`;
-        $url.textContent = url;
-        $url.setAttribute('href', url);
-        if ($introUrl) {
-            $introUrl.textContent = url;
-            $introUrl.setAttribute('href', url);
-        }
-        const qr = qrcode(4, 'L');
-        qr.addData(url);
-        qr.make();
-        document.getElementById('qr').innerHTML = qr.createImgTag(4);
-        if ($introQr) {
-            $introQr.innerHTML = qr.createImgTag(4);
-        }
+        renderIntroQr(socket.id);
     });
-    socket.on('signal', (myId, signal, peerId) => {
-        document.getElementById('menu').style.opacity = '0';
-        const introOverlay = document.getElementById('screen-start-overlay');
-        if (introOverlay) {
-            introOverlay.style.display = 'none';
-        }
-        if (signal.type === 'offer') answerPeerOffer(myId, signal, peerId);
+    socket.on('peer-disconnected', () => {
+        resetToWaitingState();
+    });
+    socket.on('signal', (_myId, signal, peerId) => {
+        if (signal.type === 'offer') answerPeerOffer(peerId);
         if (peer) peer.signal(signal);
     });
 };
 
-const answerPeerOffer = (myId, offer, peerId) => {
+const answerPeerOffer = (peerId) => {
+    cleanupPeer();
+
     peer = new SimplePeer();
-    peer.id = peerId;
+
+    peer.on('connect', () => {
+        if ($screenStartOverlay) {
+            $screenStartOverlay.style.display = 'none';
+        }
+    });
+
+    peer.on('close', () => {
+        resetToWaitingState();
+    });
+
+    peer.on('error', () => {
+        resetToWaitingState();
+    });
+
     peer.on('signal', data => {
         socket.emit('signal', peerId, data);
     });
@@ -262,9 +320,7 @@ const answerPeerOffer = (myId, offer, peerId) => {
         if (message.type === 'start') {
             startGame();
             return;
-        }
-
-        if (message.type === 'restart') {
+        } else if (message.type === 'restart') {
             startGame();
             return;
         }
@@ -281,8 +337,8 @@ const answerPeerOffer = (myId, offer, peerId) => {
         controllerGas = carState.gas;
         controllerBrake = carState.brake;
 
-        if (carState.gas) $car.classList.add('gas'); else $car.classList.remove('gas');
-        if (carState.brake) $car.classList.add('brake'); else $car.classList.remove('brake');
+        $car.classList.toggle('gas', carState.gas);
+        $car.classList.toggle('brake', carState.brake);
     });
 };
 
