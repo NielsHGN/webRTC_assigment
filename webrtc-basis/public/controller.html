@@ -5,142 +5,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Controller</title>
-    <style>
-        body {
-            margin: 0;
-            background-color: #111;
-            color: white;
-            font-family: sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-            touch-action: none;
-        }
-
-        #status-bar {
-            text-align: center;
-            padding: 15px;
-            background: #222;
-            font-weight: bold;
-            font-size: 14px;
-            color: #f1c40f;
-        }
-
-        .controls {
-            display: flex;
-            flex: 1;
-            padding: 20px;
-            gap: 20px;
-        }
-
-        .btn {
-            flex: 1;
-            border-radius: 20px;
-            font-size: 30px;
-            font-weight: 900;
-            color: white;
-            border: none;
-            outline: none;
-            box-shadow: 0 10px 0 rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            user-select: none;
-        }
-
-        .btn:active {
-            transform: translateY(10px);
-            box-shadow: 0 0 0 rgba(0, 0, 0, 0.5);
-        }
-
-        #btn-brake {
-            background-color: #e74c3c;
-        }
-
-        #btn-gas {
-            background-color: #2ecc71;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/controller.css">
 </head>
 
 <body>
-    <div id="status-bar">Koppelen met pc...</div>
+    <div class="sensor-overlay">
+        <p>Safari vereist toestemming voor de gyroscoop (stuur)</p>
+        <button class="sensor-btn">🎮 Activeer Stuur</button>
+    </div>
 
+    <div class="controller-start-overlay">
+        <div class="start-card">
+            <h2>Controller Uitleg</h2>
+            <p>Houd je gsm in <strong>landscape mode</strong> (liggend).</p>
+            <p>Kantel je gsm links/rechts om te sturen.</p>
+            <p>Houd GAS ingedrukt om te versnellen.</p>
+            <p>Houd REM ingedrukt om te vertragen.</p>
+            <button class="btn-start-controller">Start nu</button>
+        </div>
+    </div>
+
+    <!-- Status bar toont verbindingsstatus -->
+    <div class="status-bar">Koppelen met pc...</div>
+
+    <!-- Knoppen voor gas en rem (aangestuurd door aanraken) -->
     <div class="controls">
-        <div id="btn-brake" class="btn">REM</div>
-        <div id="btn-gas" class="btn">GAS</div>
+        <div class="btn btn-brake" aria-label="Rem"></div>
+        <div class="btn btn-gas" aria-label="Gas"></div>
+    </div>
+    <div class="restart-wrap">
+        <button class="btn-restart">RESTART</button>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-peer/9.11.1/simplepeer.min.js"></script>
-    <script>
-        let socket;
-        let peer;
-        let targetSocketId;
-        let carState = { steer: 0, gas: false, brake: false };
-
-        const init = () => {
-            targetSocketId = getUrlParameter('id');
-            if (!targetSocketId) { alert(`Missing target ID`); return; }
-
-            socket = io.connect('/');
-
-            socket.on('connect', () => {
-                // Zodra de socket verbonden is, starten we direct de WebRTC call met de desktop
-                callPeer(targetSocketId);
-            });
-
-            // Logica van docent
-            socket.on('signal', (myId, signal, peerId) => {
-                peer.signal(signal);
-            });
-
-            setupControls();
-        };
-
-        const callPeer = (peerId) => {
-            // De gsm is de initiator!
-            peer = new SimplePeer({ initiator: true });
-
-            peer.on('signal', data => {
-                socket.emit('signal', peerId, data);
-            });
-
-            peer.on('connect', () => {
-                document.getElementById('status-bar').innerText = "✅ WEBRTC VERBONDEN!";
-                document.getElementById('status-bar').style.color = "#2ecc71";
-
-                // Zodra WebRTC open is, sturen we continu de data van de gsm
-                setInterval(() => {
-                    peer.send(JSON.stringify(carState));
-                }, 1000 / 30);
-            });
-        };
-
-        const getUrlParameter = name => {
-            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-            const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-            const results = regex.exec(location.search);
-            return results === null ? false : decodeURIComponent(results[1].replace(/\+/g, ' '));
-        };
-
-        const setupControls = () => {
-            const btnGas = document.getElementById('btn-gas');
-            const btnBrake = document.getElementById('btn-brake');
-
-            btnGas.addEventListener('touchstart', (e) => { e.preventDefault(); carState.gas = true; });
-            btnGas.addEventListener('touchend', (e) => { e.preventDefault(); carState.gas = false; });
-            btnBrake.addEventListener('touchstart', (e) => { e.preventDefault(); carState.brake = true; });
-            btnBrake.addEventListener('touchend', (e) => { e.preventDefault(); carState.brake = false; });
-
-            window.addEventListener('deviceorientation', (e) => {
-                if (e.gamma !== null) { carState.steer = Math.round(e.gamma); }
-            });
-        };
-
-        init();
-    </script>
+    <script src="/js/controller.js"></script>
 </body>
 
 </html>
